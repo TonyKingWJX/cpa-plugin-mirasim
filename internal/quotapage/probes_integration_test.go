@@ -32,7 +32,7 @@ func (f *probeRelayFixture) Do(_ context.Context, req pluginapi.HTTPRequest) (pl
 	case "/v1/device/session":
 		body = `{"ticket":"ticket","expiresIn":900}`
 	case "/v1/models":
-		body = `{"data":[{"id":"claude-opus-5-5"},{"id":"gpt-6-astra"},{"id":"kimi-code/k3"},{"id":"gemini-3.1-pro-preview"}]}`
+		body = `{"data":[{"id":"claude-opus-5-5"},{"id":"gpt-6-astra"},{"id":"kimi-k3"},{"id":"gemini-3.1-pro-preview"}]}`
 	case "/v1/model-roster":
 		body = `{"version":"probe-fixture","models":{"claude-opus-5-5":{"contextWindow":1000000,"adaptive":true}}}`
 	case "/v1/messages", "/v1/responses", "/v1/images/generations":
@@ -116,7 +116,7 @@ func TestProbesUseRealCatalogAndExecutorWithoutDuplicateAliasCalls(t *testing.T)
 			t.Fatalf("%s: %s", row.Model, response.Body)
 		}
 	}
-	if relay.inferences["kimi-code/k3"] != 1 || relay.inferences["claude-opus-5-5"] != 1 || relay.inferences["gpt-6-astra"] != 1 {
+	if relay.inferences["kimi-k3"] != 1 || relay.inferences["claude-opus-5-5"] != 1 || relay.inferences["gpt-6-astra"] != 1 {
 		t.Fatalf("inference counts=%v", relay.inferences)
 	}
 	for model, calls := range relay.inferences {

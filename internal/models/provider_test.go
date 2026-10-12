@@ -69,7 +69,7 @@ func TestCatalogFailureUsesOfficialFallbackForExistingCredential(t *testing.T) {
 	for _, model := range response.Models {
 		byID[model.ID] = model
 	}
-	for _, id := range []string{"claude-opus-5-5", "claude-sonnet-5-5", "gpt-6-astra", "gpt-6-luna", "gpt-6-sol", "deepseek-flash", "glm-5.3-flash", "kimi-k3", "gpt-image-2"} {
+	for _, id := range []string{"claude-opus-5-5", "claude-sonnet-5-5", "claude-haiku-5-5", "gpt-6-astra", "gpt-6-luna", "gpt-6.1-sol", "deepseek-flash", "glm-5.3-flash", "kimi-k3", "gpt-image-2"} {
 		if _, ok := byID[id]; !ok {
 			t.Fatalf("fallback missing %s", id)
 		}
@@ -126,7 +126,7 @@ func TestModelsForAuthFiltersWithdrawnModelsAndAliases(t *testing.T) {
 				case "/v1/device/session":
 					return pluginapi.HTTPResponse{StatusCode: 200, Body: []byte(`{"ticket":"ticket","expiresIn":900}`)}, nil
 				case "/v1/models":
-					return pluginapi.HTTPResponse{StatusCode: catalogStatus, Body: []byte(`{"data":[{"id":"claude-sonnet-5"},{"id":"claude-fable-5"},{"id":"claude-opus-5-5"},{"id":"kimi-code/k3"},{"id":"gpt-6-astra"}]}`)}, nil
+					return pluginapi.HTTPResponse{StatusCode: catalogStatus, Body: []byte(`{"data":[{"id":"claude-sonnet-5"},{"id":"claude-fable-5"},{"id":"claude-opus-5-5"},{"id":"kimi-k3"},{"id":"gpt-6-astra"}]}`)}, nil
 				case "/v1/model-roster":
 					return pluginapi.HTTPResponse{StatusCode: 200, Body: []byte(`{"version":"withdrawals","withdrawn":[" CLAUDE-SONNET-5 ","claude-fable-5","kimi-k3","gpt-image-2"],"models":{"claude-opus-5-5":{"contextWindow":1000000}}}`)}, nil
 				default:
@@ -241,7 +241,7 @@ func TestCatalogPublishesGeminiMessagesModel(t *testing.T) {
 func TestPublishedRelayModelsAndAliasesDeclareImageInput(t *testing.T) {
 	models := publishModels(exposedModels([]mirasim.RemoteModel{
 		{ID: "claude-opus-5-5"}, {ID: "gpt-6-astra"}, {ID: "gpt-6.1-sol"},
-		{ID: "deepseek-flash"}, {ID: "kimi-code/k3"}, {ID: "glm-5.3-flash"}, {ID: "gemini-3.1-pro-preview"},
+		{ID: "deepseek-flash"}, {ID: "kimi-k3"}, {ID: "glm-5.3-flash"}, {ID: "gemini-3.1-pro-preview"},
 	}))
 	seen := make(map[string]bool)
 	for _, model := range models {
@@ -257,7 +257,7 @@ func TestPublishedRelayModelsAndAliasesDeclareImageInput(t *testing.T) {
 			t.Errorf("%s output modalities=%v, want %s", model.ID, model.SupportedOutputModalities, wantOutput)
 		}
 	}
-	for _, alias := range []string{"claude-opus-5-5[1m]", "kimi-k3", "gpt-image-2"} {
+	for _, alias := range []string{"claude-opus-5-5[1m]", "kimi-code/k3", "gpt-image-2"} {
 		if !seen[alias] {
 			t.Errorf("missing alias %s", alias)
 		}
@@ -267,8 +267,8 @@ func TestPublishedRelayModelsAndAliasesDeclareImageInput(t *testing.T) {
 func TestFallbackCatalogCoversOfficialBuiltinFamilies(t *testing.T) {
 	models := publishModels(fallbackModels())
 	// Every fallback id, plus five [1m] selectors for the million-token Claude
-	// models, five gpt-image routes, and the "kimi-k3" selector earlier
-	// releases published for "kimi-code/k3".
+	// models, five gpt-image routes, and the "kimi-code/k3" selector earlier
+	// releases published for "kimi-k3".
 	if len(models) != len(fallbackModelIDs)+5+5+1 {
 		t.Fatalf("model count = %d, want %d: %v", len(models), len(fallbackModelIDs)+5+5+1, modelIDs(models))
 	}
@@ -302,7 +302,7 @@ func TestFallbackCatalogCoversOfficialBuiltinFamilies(t *testing.T) {
 			t.Fatalf("unexpected model family: %#v", model)
 		}
 	}
-	if claudeCount != 11 || gptCount != 6 {
+	if claudeCount != 12 || gptCount != 7 {
 		t.Fatalf("fallback family counts: Claude=%d GPT=%d", claudeCount, gptCount)
 	}
 	byID := make(map[string]pluginapi.ModelInfo, len(models))
@@ -337,14 +337,14 @@ func TestFallbackCatalogCoversOfficialBuiltinFamilies(t *testing.T) {
 	if glm := byID["glm-5.3-flash"]; glm.Type != "glm" || glm.ContextLength != 1000000 || glm.MaxCompletionTokens != 0 {
 		t.Fatalf("GLM metadata = %#v", glm)
 	}
-	// The relay serves "kimi-code/k3". The plugin also keeps publishing the
-	// "kimi-k3" selector older releases shipped, and both entries have to
+	// The relay serves "kimi-k3". The plugin also keeps publishing the
+	// "kimi-code/k3" selector older releases shipped, and both entries have to
 	// carry the same metadata so a caller holding either one is unaffected.
-	kimi := byID["kimi-code/k3"]
+	kimi := byID["kimi-k3"]
 	if kimi.Type != "kimi" || kimi.ContextLength != 1048576 || kimi.MaxCompletionTokens != 0 {
 		t.Fatalf("Kimi metadata = %#v", kimi)
 	}
-	alias := byID["kimi-k3"]
+	alias := byID["kimi-code/k3"]
 	if alias.Type != kimi.Type || alias.ContextLength != kimi.ContextLength ||
 		alias.MaxCompletionTokens != kimi.MaxCompletionTokens || alias.DisplayName != kimi.DisplayName ||
 		len(alias.Thinking.Levels) != len(kimi.Thinking.Levels) {
@@ -396,6 +396,19 @@ func TestExposedModelsRefusePaidVariants(t *testing.T) {
 	})
 	if len(models) != 1 || models[0].ID != "gpt-6-astra" {
 		t.Fatalf("paid variants were exposed: %#v", models)
+	}
+}
+
+// The account catalog publishes DeepSeek variants the relay refuses upstream;
+// the official roster serves deepseek-flash alone, so only it is exposed.
+func TestExposedModelsRefuseUnservedDeepSeekVariants(t *testing.T) {
+	models := exposedModels([]mirasim.RemoteModel{
+		{ID: "deepseek-flash"},
+		{ID: "deepseek-v4"},
+		{ID: "deepseek-chat"},
+	})
+	if len(models) != 1 || models[0].ID != "deepseek-flash" {
+		t.Fatalf("unserved DeepSeek variants were exposed: %v", modelIDs(models))
 	}
 }
 

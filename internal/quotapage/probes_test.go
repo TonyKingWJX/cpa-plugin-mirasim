@@ -91,7 +91,7 @@ func TestProbePageAndPlanDoNotRunInference(t *testing.T) {
 		t.Fatalf("rows=%+v inference=%d", rows, len(executor.requests))
 	}
 	for _, row := range rows {
-		if row.Ticket == "" || row.Model == "kimi-k3" || strings.Contains(row.Model, "[1m]") {
+		if row.Ticket == "" || row.Model == "kimi-code/k3" || strings.Contains(row.Model, "[1m]") {
 			t.Fatalf("invalid/doubled model=%+v", row)
 		}
 	}

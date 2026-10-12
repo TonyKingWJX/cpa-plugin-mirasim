@@ -40,7 +40,7 @@ func messagesSSEFixture(model string) []byte {
 }
 
 func TestExecuteNonStreamMessagesPreservesContentAcrossProtocols(t *testing.T) {
-	for _, model := range []string{"claude-sonnet-5-5", "deepseek-flash", "glm-5.3-flash", "kimi-code/k3", "gemini-3.1-pro-preview"} {
+	for _, model := range []string{"claude-sonnet-5-5", "deepseek-flash", "glm-5.3-flash", "kimi-k3", "gemini-3.1-pro-preview"} {
 		for _, format := range []struct {
 			name, request, inputUsage, outputUsage string
 		}{

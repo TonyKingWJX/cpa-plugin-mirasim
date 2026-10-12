@@ -39,7 +39,7 @@ func TestRosterKeepsBuiltinRelayEfforts(t *testing.T) {
 			// The official 0.0.426 roster omits adaptive on these agent entries.
 			return pluginapi.HTTPResponse{StatusCode: 200, Body: []byte(`{"version":"parity-426","agents":{
 				"dsh":[{"id":"deepseek-flash","contextWindow":1000000,"effort":["off","low","high","max"]}],
-				"kimi":[{"id":"kimi-code/k3","contextWindow":1048576,"effort":["low","high","max"]}],
+				"kimi":[{"id":"kimi-k3","contextWindow":1048576,"effort":["low","high","max"]}],
 				"zcode":[{"id":"glm-5.3-flash","contextWindow":1000000,"effort":["low","high","max"]}]
 			}}`)}, nil
 		default:
@@ -209,9 +209,10 @@ func TestBuildProviderRequestRoutesByModelAndClientProtocol(t *testing.T) {
 	}
 }
 
-// The relay serves "kimi-code/k3". Both the id its catalog publishes and the
-// "kimi-k3" selector earlier plugin releases shipped have to reach it, because
-// asking upstream for the alias would name a model the relay does not serve.
+// The relay serves "kimi-k3". Both the id its catalog publishes and the
+// "kimi-code/k3" selector earlier plugin releases shipped have to reach it,
+// because asking upstream for the alias would name a model the relay does not
+// serve.
 func TestKimiSelectorsReachTheRelayModelID(t *testing.T) {
 	for _, model := range []string{"kimi-code/k3", "kimi-k3", "mirasim/kimi-k3"} {
 		body, route, errBuild := buildProviderRequest(pluginapi.ExecutorRequest{
@@ -230,7 +231,7 @@ func TestKimiSelectorsReachTheRelayModelID(t *testing.T) {
 		if errDecode := json.Unmarshal(body, &decoded); errDecode != nil {
 			t.Fatalf("request body for %q is invalid JSON: %v\n%s", model, errDecode, body)
 		}
-		if decoded["model"] != "kimi-code/k3" {
+		if decoded["model"] != "kimi-k3" {
 			t.Fatalf("model on the wire for %q = %#v", model, decoded["model"])
 		}
 	}

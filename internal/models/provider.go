@@ -14,6 +14,7 @@ import (
 var fallbackModelIDs = []string{
 	"claude-fable-5-1",
 	"claude-haiku-4-5",
+	"claude-haiku-5-5",
 	"claude-opus-4-8",
 	"claude-opus-5",
 	"claude-opus-5-5",
@@ -21,12 +22,13 @@ var fallbackModelIDs = []string{
 	"gpt-6-astra",
 	"gpt-6-luna",
 	"gpt-6-sol",
+	"gpt-6.1-sol",
 	"gpt-5.6-luna",
 	"gpt-5.6-sol",
 	"gpt-5.6-terra",
 	"deepseek-flash",
 	"glm-5.3-flash",
-	"kimi-code/k3",
+	"kimi-k3",
 	"gemini-3.1-pro-preview",
 }
 
@@ -63,6 +65,12 @@ var modelDefinitions = map[string]modelDefinition{
 	},
 	"claude-haiku-4-5": {
 		displayName: "Claude 4.5 Haiku", created: 1759276800, context: 200000, output: 64000,
+		description: "Anthropic fast Claude model with adaptive effort via Mirasim",
+		methods:     []string{"messages", "countTokens"}, parameters: []string{"max_tokens", "stop_sequences", "temperature", "top_p", "top_k", "tools", "tool_choice", "thinking", "output_config"},
+		thinking: adaptiveRelayThinking(), modelType: "claude", owner: "anthropic",
+	},
+	"claude-haiku-5-5": {
+		displayName: "Claude 5.5 Haiku", context: 200000, output: 64000,
 		description: "Anthropic fast Claude model with adaptive effort via Mirasim",
 		methods:     []string{"messages", "countTokens"}, parameters: []string{"max_tokens", "stop_sequences", "temperature", "top_p", "top_k", "tools", "tool_choice", "thinking", "output_config"},
 		thinking: adaptiveRelayThinking(), modelType: "claude", owner: "anthropic",
@@ -122,6 +130,11 @@ var modelDefinitions = map[string]modelDefinition{
 		description: "OpenAI GPT 6 Sol via Mirasim",
 		methods:     []string{"responses"}, parameters: []string{"tools", "thinking"}, thinking: codexThinking(), modelType: "openai", owner: "openai",
 	},
+	"gpt-6.1-sol": {
+		displayName: "GPT 6.1 Sol", version: "gpt-6.1", context: 872000, output: 128000,
+		description: "OpenAI GPT 6.1 Sol via Mirasim",
+		methods:     []string{"responses"}, parameters: []string{"tools", "thinking"}, thinking: codexThinking(), modelType: "openai", owner: "openai",
+	},
 	"gpt-5.6-luna": {
 		displayName: "GPT 5.6 Luna", version: "gpt-5.6", created: 1783616400, context: 872000, output: 128000,
 		description: "Fast and affordable OpenAI agentic coding model via Mirasim",
@@ -149,7 +162,7 @@ var modelDefinitions = map[string]modelDefinition{
 		methods:     []string{"messages", "countTokens"}, parameters: []string{"max_tokens", "stop_sequences", "tools", "tool_choice", "thinking", "output_config"},
 		thinking: &pluginapi.ThinkingSupport{DynamicAllowed: true, Levels: []string{"low", "high", "max"}}, modelType: "glm", owner: "z-ai",
 	},
-	"kimi-code/k3": {
+	"kimi-k3": {
 		displayName: "Kimi K3", context: 1048576,
 		description: "Kimi K3 via Mirasim",
 		methods:     []string{"messages", "countTokens"}, parameters: []string{"max_tokens", "stop_sequences", "tools", "tool_choice", "thinking", "output_config"},
@@ -310,8 +323,14 @@ func isExposedModel(id string) bool {
 	if mirasim.PaidVariantModel(id) {
 		return false
 	}
+	// The account catalog lists DeepSeek variants the relay refuses upstream;
+	// the official roster serves deepseek-flash alone, so the rest are never
+	// published rather than offered and rejected on first use.
+	if strings.HasPrefix(id, "deepseek-") {
+		return id == "deepseek-flash"
+	}
 	return strings.HasPrefix(id, "claude-") || strings.HasPrefix(id, "gpt-") ||
-		strings.HasPrefix(id, "deepseek-") || strings.HasPrefix(id, "glm-") || strings.HasPrefix(id, "kimi-") || strings.HasPrefix(id, "gemini-")
+		strings.HasPrefix(id, "glm-") || strings.HasPrefix(id, "kimi-") || strings.HasPrefix(id, "gemini-")
 }
 
 func modelInfo(id, object string, created int64, owner string) pluginapi.ModelInfo {
