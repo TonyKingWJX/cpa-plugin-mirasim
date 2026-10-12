@@ -112,7 +112,9 @@ Gemini 3.1 Pro 使用 `gemini-3.1-pro-preview`，通过 Mirasim 的 Messages 接
 
 账号目录含有 GPT 时，CPA 还会列出 `gpt-image-*`。这些是路由别名，账号能否生图由中继决定。`/v1/images/generations` 和 `/v1/images/edits` 会转到 Mirasim，也包括 Codex 的 `/backend-api/codex/images/*`。Codex 压缩请求走 `/v1/responses/compact`，别名是 `/backend-api/codex/responses/compact`。
 
-Kimi 的模型名以中继目录为准，现在是 `kimi-code/k3`。早期版本把它写成 `kimi-k3`，这个写法仍然可用：列表里两个名字都会出现，转发时统一换成 `kimi-code/k3`。同理，模型名里的 `mirasim/` 前缀会被去掉。
+Kimi 的模型名以中继目录为准，官方名是 `kimi-k3`。早期版本把它写成 `kimi-code/k3`，这个写法仍然可用：列表里两个名字都会出现，转发时统一换成 `kimi-k3`。同理，模型名里的 `mirasim/` 前缀会被去掉。
+
+DeepSeek 官方只服务 `deepseek-flash`。账号目录里列出的其他 DeepSeek 变体中继并不支持，插件不会把它们发布到列表里。
 
 用 Claude Code 或 Codex 做一次真实请求来确认。手写的极简 Messages 请求失败，不能说明客户端不可用。插件不读取仓库路径或 Git 信息。
 

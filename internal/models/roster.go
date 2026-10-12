@@ -5,13 +5,17 @@ import (
 
 	"github.com/router-for-me/CLIProxyAPI/v7/sdk/pluginapi"
 	"github.com/router-for-me/CLIProxyAPIPlugins/mirasim/internal/mirasim"
+	thinkingpkg "github.com/router-for-me/CLIProxyAPIPlugins/mirasim/internal/thinking"
 )
 
 // Overlay specifications only on models the account's live catalog exposes.
 func applyRoster(models []pluginapi.ModelInfo, roster mirasim.ModelRoster) {
 	for i := range models {
 		m := &models[i]
-		spec, ok := roster.Spec(m.ID)
+		// The catalog may publish either Kimi spelling, so resolve the selector
+		// before the lookup: roster metadata is keyed by the relay's own id.
+		upstreamID := thinkingpkg.UpstreamModelID(m.ID)
+		spec, ok := roster.Spec(upstreamID)
 		if !ok {
 			continue
 		}
@@ -41,7 +45,7 @@ func applyRoster(models []pluginapi.ModelInfo, roster mirasim.ModelRoster) {
 		// thinking form, so publish the bounds that form actually accepts: an
 		// effort string carries no token budget, and a budget model cannot take
 		// an effort string. Advertising both invites a request the relay rejects.
-		adaptive, shapeKnown := roster.ThinkingAdaptive(m.ID)
+		adaptive, shapeKnown := roster.ThinkingAdaptive(upstreamID)
 		if m.Type == "claude" && (shapeKnown || len(levels) > 0) {
 			// A catalog-only model uses the same roster shape as the executor.
 			// An effort-only specification keeps the relay's adaptive default.
